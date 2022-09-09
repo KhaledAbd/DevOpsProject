@@ -154,7 +154,6 @@ Resources:
         Properties:
             RouteTableId: !Ref PublicRouteTable
             SubnetId: !Ref PublicSubnet2
-    
 
     PrivateRouteTable1:
         Type: AWS::EC2::RouteTable
@@ -240,11 +239,13 @@ Resources:
         UserData:
           Fn::Base64: !Sub |
             #!/bin/bash
+            sudo apt-get install awscli
             sudo apt-get update -y
             sudo apt-get install apache2 -y
             sudo systemctl start apache2.service
             cd /var/www/html
-            echo "Udacity Demo Web Server Up and Running!" > index.html       
+            echo "khaled Demo Web Server Up and Running!" > index.html
+       
         # ToDo: AMI ID of Ubuntu Linux machine. Too get one, try creating a VM from the web console. 
         ImageId: ami-0747bdcabd34c712a
         # ToDo: Change the key-pair name, as applicable to you. 
@@ -257,6 +258,7 @@ Resources:
           Ebs:
             VolumeSize: '4'
         IamInstanceProfile: !Ref InstanceProfile
+    
     WebAppGroup:
       Type: AWS::AutoScaling::AutoScalingGroup
       Properties:
@@ -265,7 +267,7 @@ Resources:
         - !Ref PublicSubnet2 
         LaunchConfigurationName:
           Ref: WebAppLaunchConfig
-        MinSize: '3'
+        MinSize: '2'
         MaxSize: '5'
         TargetGroupARNs:
         - Ref: WebAppTargetGroup
@@ -320,8 +322,14 @@ Resources:
       Type: 'AWS::S3::Bucket'
       Description: Bucket on which we will attach and test bucket policy
       Properties:
+        AccessControl: Private
         BucketName: !Ref BucketName
-          
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: false
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+    
     MyS3BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
@@ -339,6 +347,7 @@ Resources:
               Principal:
                 AWS:
                   - '*'
+   
     S3AccessRole: 
         Type: "AWS::IAM::Role"
         Properties: 
